@@ -6,4 +6,5 @@ services:
     ports:
       - 4000:4000
     volumes:
-      - ./:/app/
+      - "./.air.toml:/app/.air.toml"
+      - "./cmd/web:/app/cmd/web/"
