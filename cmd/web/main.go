@@ -8,6 +8,11 @@ import (
 	"path/filepath"
 )
 
+type application struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
+}
+
 func main() {
 	// TODO Replace this with .env vars
 	addr := flag.String("addr", ":4000", "HTTP network address")
@@ -16,6 +21,11 @@ func main() {
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime|log.LUTC)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
+
+	app := &application{
+		infoLog:  infoLog,
+		errorLog: errorLog,
+	}
 
 	mux := http.NewServeMux()
 
@@ -30,13 +40,13 @@ func main() {
 	// Can use http.ServerFile() to serve individual file from handler but unlike
 	// http.FileServer, it does not sanitize input with filepath.Clean()
 
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet/view", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
+	mux.HandleFunc("/", app.home)
+	mux.HandleFunc("/snippet/view", app.snippetView)
+	mux.HandleFunc("/snippet/create", app.snippetCreate)
 
 	server := &http.Server{
 		Addr:     *addr,
-		ErrorLog: errorLog,
+		ErrorLog: errorLog, // ensure the server is using the new errorLog
 		Handler:  mux,
 	}
 
