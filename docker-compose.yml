@@ -1,4 +1,5 @@
-version: "3.8"
+version: "3.9"
+
 services:
   web:
     build:
@@ -9,3 +10,25 @@ services:
       - "./.air.toml:/app/.air.toml"
       - "./cmd/web/:/app/cmd/web/"
       - "./ui/:/app/ui/"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:8.0.31
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 3306:3306
+    volumes:
+      - lets-go-db-data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+volumes:
+  lets-go-db-data:
+    driver: local
