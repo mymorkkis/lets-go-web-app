@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 type application struct {
@@ -29,7 +28,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	staticPath, err := getUIPath("static")
+	staticPath, err := app.getUIPath("static")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,13 +52,4 @@ func main() {
 	infoLog.Printf("Starting server on %s", *addr)
 	err = server.ListenAndServe()
 	errorLog.Fatal(err)
-}
-
-func getUIPath(subfolder string) (string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(wd, "ui", subfolder), nil
 }
