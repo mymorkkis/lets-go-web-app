@@ -3,9 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"github.com/mymorkkis/lets-go-web-app/internal/models"
@@ -17,27 +15,37 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmlPath, err := app.getUIPath("html")
-	if err != nil {
-		app.serverError(w, err)
-	}
-
-	files := []string{
-		filepath.Join(htmlPath, "base.html"),
-		filepath.Join(htmlPath, "pages", "home.html"),
-		filepath.Join(htmlPath, "partials", "nav.html"),
-	}
-
-	templateSet, err := template.ParseFiles(files...)
+	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	err = templateSet.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		app.serverError(w, err)
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v\n", snippet)
 	}
+
+	// htmlPath, err := app.getUIPath("html")
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
+
+	// files := []string{
+	// 	filepath.Join(htmlPath, "base.html"),
+	// 	filepath.Join(htmlPath, "pages", "home.html"),
+	// 	filepath.Join(htmlPath, "partials", "nav.html"),
+	// }
+
+	// templateSet, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// 	return
+	// }
+
+	// err = templateSet.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
