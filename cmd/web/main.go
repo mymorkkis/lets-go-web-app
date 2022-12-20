@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,11 @@ import (
 )
 
 func main() {
+	// TODO Replace this with .env vars
+	addr := flag.String("addr", ":4000", "HTTP network address")
+	// Could also store multiple settings in a single struct
+	flag.Parse()
+
 	mux := http.NewServeMux()
 
 	staticPath, err := getUIPath("static")
@@ -25,8 +31,8 @@ func main() {
 	mux.HandleFunc("/snippet/view", snippetView)
 	mux.HandleFunc("/snippet/create", snippetCreate)
 
-	log.Print("Starting server on :4000")
-	err = http.ListenAndServe(":4000", mux)
+	log.Printf("Starting server on %s", *addr)
+	err = http.ListenAndServe(*addr, mux)
 	log.Fatal(err)
 }
 
