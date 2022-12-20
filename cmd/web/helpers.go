@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,4 +31,24 @@ func (app *application) getUIPath(subfolder string) (string, error) {
 	}
 
 	return filepath.Join(wd, "ui", subfolder), nil
+}
+
+func (app *application) getTemplateSetForHTMLPage(page string) (*template.Template, error) {
+	htmlPath, err := app.getUIPath("html")
+	if err != nil {
+		return nil, err
+	}
+
+	files := []string{
+		filepath.Join(htmlPath, "base.html"),
+		filepath.Join(htmlPath, "partials", "nav.html"),
+		filepath.Join(htmlPath, "pages", page),
+	}
+
+	templateSet, err := template.ParseFiles(files...)
+	if err != nil {
+		return nil, err
+	}
+
+	return templateSet, nil
 }

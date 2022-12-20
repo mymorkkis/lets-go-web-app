@@ -25,18 +25,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v\n", snippet)
 	}
 
-	// htmlPath, err := app.getUIPath("html")
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// }
-
-	// files := []string{
-	// 	filepath.Join(htmlPath, "base.html"),
-	// 	filepath.Join(htmlPath, "pages", "home.html"),
-	// 	filepath.Join(htmlPath, "partials", "nav.html"),
-	// }
-
-	// templateSet, err := template.ParseFiles(files...)
+	// templateSet, err := app.getTemplateSetForHTMLPage("home.html")
 	// if err != nil {
 	// 	app.serverError(w, err)
 	// 	return
@@ -65,7 +54,20 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%+v", snippet)
+	templateSet, err := app.getTemplateSetForHTMLPage("view.html")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	data := &templateData{
+		Snippet: snippet,
+	}
+
+	err = templateSet.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
