@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 )
@@ -16,7 +15,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	basePath, err := getHTMLPath()
+	htmlPath, err := getUIPath("html")
 	if err != nil {
 		log.Print(err.Error())
 		errCode := http.StatusInternalServerError
@@ -24,9 +23,9 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	files := []string{
-		filepath.Join(basePath, "base.html"),
-		filepath.Join(basePath, "pages", "home.html"),
-		filepath.Join(basePath, "partials", "nav.html"),
+		filepath.Join(htmlPath, "base.html"),
+		filepath.Join(htmlPath, "pages", "home.html"),
+		filepath.Join(htmlPath, "partials", "nav.html"),
 	}
 
 	templateSet, err := template.ParseFiles(files...)
@@ -64,13 +63,4 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("Create a new snippet..."))
-}
-
-func getHTMLPath() (string, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(wd, "ui", "html"), nil
 }
