@@ -4,11 +4,14 @@ services:
   web:
     build:
       context: .
+    env_file:
+      - .env
     ports:
       - 4000:4000
     volumes:
       - "./.air.toml:/app/.air.toml"
       - "./cmd/web/:/app/cmd/web/"
+      - "./internal/:/app/internal/"
       - "./ui/:/app/ui/"
     depends_on:
       db:
