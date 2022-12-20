@@ -26,27 +26,15 @@ func main() {
 		errorLog: errorLog,
 	}
 
-	mux := http.NewServeMux()
-
-	staticPath, err := app.getUIPath("static")
+	routes, err := app.routes()
 	if err != nil {
-		log.Fatal(err)
+		errorLog.Fatal(err)
 	}
-
-	fileServer := http.FileServer(http.Dir(staticPath))
-
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-	// Can use http.ServerFile() to serve individual file from handler but unlike
-	// http.FileServer, it does not sanitize input with filepath.Clean()
-
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet/view", app.snippetView)
-	mux.HandleFunc("/snippet/create", app.snippetCreate)
 
 	server := &http.Server{
 		Addr:     *addr,
-		ErrorLog: errorLog, // ensure the server is using the new errorLog
-		Handler:  mux,
+		ErrorLog: errorLog,
+		Handler:  routes,
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)
