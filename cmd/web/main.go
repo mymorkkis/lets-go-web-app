@@ -4,18 +4,22 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mymorkkis/lets-go-web-app/internal/models"
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *models.SnippetModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
+	staticPath    string
 }
 
 func main() {
@@ -33,21 +37,28 @@ func main() {
 	}
 	defer db.Close()
 
-	app := &application{
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		snippets: &models.SnippetModel{DB: db},
-	}
-
-	routes, err := app.routes()
+	templateCache, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	app := &application{
+		infoLog:       infoLog,
+		errorLog:      errorLog,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
+		staticPath:    filepath.Join(wd, "ui", "static"),
 	}
 
 	server := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  routes,
+		Handler:  app.routes(),
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)

@@ -2,10 +2,7 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
-	"os"
-	"path/filepath"
 	"runtime/debug"
 )
 
@@ -24,33 +21,18 @@ func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
 }
 
-func (app *application) getUIPath(subfolder string) (string, error) {
-	wd, err := os.Getwd()
+func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
+	templateSet, ok := app.templateCache[page]
+	if !ok {
+		err := fmt.Errorf("the template %s does not exist", page)
+		app.serverError(w, err)
+		return
+	}
+
+	w.WriteHeader(status)
+
+	err := templateSet.ExecuteTemplate(w, "base", data)
 	if err != nil {
-		return "", err
+		app.serverError(w, err)
 	}
-
-	return filepath.Join(wd, "ui", subfolder), nil
-}
-
-func (app *application) getTemplateSetForHTMLPage(pageName string) (*template.Template, error) {
-	htmlPath, err := app.getUIPath("html")
-	if err != nil {
-		return nil, err
-	}
-
-	page := fmt.Sprintf("%s.html", pageName)
-
-	files := []string{
-		filepath.Join(htmlPath, "base.html"),
-		filepath.Join(htmlPath, "partials", "nav.html"),
-		filepath.Join(htmlPath, "pages", page),
-	}
-
-	templateSet, err := template.ParseFiles(files...)
-	if err != nil {
-		return nil, err
-	}
-
-	return templateSet, nil
 }
