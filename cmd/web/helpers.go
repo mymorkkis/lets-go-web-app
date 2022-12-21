@@ -33,11 +33,13 @@ func (app *application) getUIPath(subfolder string) (string, error) {
 	return filepath.Join(wd, "ui", subfolder), nil
 }
 
-func (app *application) getTemplateSetForHTMLPage(page string) (*template.Template, error) {
+func (app *application) getTemplateSetForHTMLPage(pageName string) (*template.Template, error) {
 	htmlPath, err := app.getUIPath("html")
 	if err != nil {
 		return nil, err
 	}
+
+	page := fmt.Sprintf("%s.html", pageName)
 
 	files := []string{
 		filepath.Join(htmlPath, "base.html"),

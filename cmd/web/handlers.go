@@ -21,20 +21,20 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v\n", snippet)
+	templateSet, err := app.getTemplateSetForHTMLPage("home")
+	if err != nil {
+		app.serverError(w, err)
+		return
 	}
 
-	// templateSet, err := app.getTemplateSetForHTMLPage("home.html")
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// 	return
-	// }
+	data := &templateData{
+		Snippets: snippets,
+	}
 
-	// err = templateSet.ExecuteTemplate(w, "base", nil)
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// }
+	err = templateSet.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +54,7 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templateSet, err := app.getTemplateSetForHTMLPage("view.html")
+	templateSet, err := app.getTemplateSetForHTMLPage("view")
 	if err != nil {
 		app.serverError(w, err)
 		return
