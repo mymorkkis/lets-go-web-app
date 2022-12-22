@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mymorkkis/lets-go-web-app/internal/models"
 )
@@ -19,6 +20,7 @@ type application struct {
 	infoLog       *log.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 	staticPath    string
 }
 
@@ -42,6 +44,8 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	formDecoder := form.NewDecoder()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		errorLog.Fatal(err)
@@ -52,6 +56,7 @@ func main() {
 		errorLog:      errorLog,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 		staticPath:    filepath.Join(wd, "ui", "static"),
 	}
 
