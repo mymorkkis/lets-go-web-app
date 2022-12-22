@@ -3,22 +3,31 @@ package main
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
 
 func (app *application) routes() http.Handler {
-	mux := http.NewServeMux()
+	router := httprouter.New()
 
-	// Can use http.ServerFile() to serve individual file from handler but unlike
-	// http.FileServer, it does not sanitize input with filepath.Clean()
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.notFound(w)
+	})
+
 	fileServer := http.FileServer(http.Dir(app.staticPath))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+	router.Handler(
+		http.MethodGet,
+		"/static/*filepath",
+		http.StripPrefix("/static", fileServer),
+	)
 
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet/view", app.snippetView)
-	mux.HandleFunc("/snippet/create", app.snippetCreate)
+	// TODO Improve these, httprouter won't allow confilicting routes /snippets/:id + /snippets/new etc
+	router.HandlerFunc(http.MethodGet, "/", app.home)
+	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
+	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreateForm)
+	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreate)
 
 	requestMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
-	return requestMiddleware.Then(mux)
+	return requestMiddleware.Then(router)
 }
