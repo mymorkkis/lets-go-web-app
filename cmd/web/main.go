@@ -9,19 +9,23 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mymorkkis/lets-go-web-app/internal/models"
 )
 
 type application struct {
-	errorLog      *log.Logger
-	infoLog       *log.Logger
-	snippets      *models.SnippetModel
-	templateCache map[string]*template.Template
-	formDecoder   *form.Decoder
-	staticPath    string
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	snippets       *models.SnippetModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
+	staticPath     string
 }
 
 func main() {
@@ -46,18 +50,23 @@ func main() {
 
 	formDecoder := form.NewDecoder()
 
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	wd, err := os.Getwd()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
 	app := &application{
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder,
-		staticPath:    filepath.Join(wd, "ui", "static"),
+		infoLog:        infoLog,
+		errorLog:       errorLog,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
+		staticPath:     filepath.Join(wd, "ui", "static"),
 	}
 
 	server := &http.Server{

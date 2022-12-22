@@ -21,11 +21,14 @@ func (app *application) routes() http.Handler {
 		http.StripPrefix("/static", fileServer),
 	)
 
+	dynamicMiddleware := alice.New(app.sessionManager.LoadAndSave)
+	dynamicThen := dynamicMiddleware.ThenFunc
+
 	// TODO Improve these, httprouter won't allow confilicting routes /snippets/:id + /snippets/new etc
-	router.HandlerFunc(http.MethodGet, "/", app.home)
-	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.snippetView)
-	router.HandlerFunc(http.MethodGet, "/snippet/create", app.snippetCreateForm)
-	router.HandlerFunc(http.MethodPost, "/snippet/create", app.snippetCreate)
+	router.Handler(http.MethodGet, "/", dynamicThen(app.home))
+	router.Handler(http.MethodGet, "/snippet/view/:id", dynamicThen(app.snippetView))
+	router.Handler(http.MethodGet, "/snippet/create", dynamicThen(app.snippetCreateForm))
+	router.Handler(http.MethodPost, "/snippet/create", dynamicThen(app.snippetCreate))
 
 	requestMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 

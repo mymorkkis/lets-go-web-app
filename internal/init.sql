@@ -37,5 +37,16 @@ INSERT INTO snippets (title, content, created, expires) VALUES (
 
 CREATE USER 'MYSQL_USER'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'MYSQL_USER'@'localhost';
--- Important: Make sure to swap 'pass' with a password of your own choosing.
 ALTER USER 'MYSQL_USER'@'localhost' IDENTIFIED BY 'MYSQL_PASSWORD';
+
+-- Session Manager set up
+
+USE snippetbox;
+
+CREATE TABLE sessions (
+    token CHAR(43) PRIMARY KEY,
+    data BLOB NOT NULL,
+    expiry TIMESTAMP(6) NOT NULL
+);
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
