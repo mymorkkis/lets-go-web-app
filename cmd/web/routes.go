@@ -30,6 +30,12 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/snippet/create", dynamicThen(app.snippetCreateForm))
 	router.Handler(http.MethodPost, "/snippet/create", dynamicThen(app.snippetCreate))
 
+	router.Handler(http.MethodGet, "/user/signup", dynamicThen(app.userSignupForm))
+	router.Handler(http.MethodPost, "/user/signup", dynamicThen(app.userSignup))
+	router.Handler(http.MethodGet, "/user/login", dynamicThen(app.userLoginForm))
+	router.Handler(http.MethodPost, "/user/login", dynamicThen(app.userLogin))
+	router.Handler(http.MethodPost, "/user/logout", dynamicThen(app.userLogout))
+
 	requestMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
 	return requestMiddleware.Then(router)
