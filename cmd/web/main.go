@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -70,10 +71,17 @@ func main() {
 		staticPath:     filepath.Join(wd, "ui", "static"),
 	}
 
+	tlsConfig := &tls.Config{
+		// These two elliptic curves have assembly implementations
+		// and are the least CPU intensive ones that Go supports.
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	server := &http.Server{
-		Addr:     *addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(),
+		Addr:      *addr,
+		ErrorLog:  errorLog,
+		Handler:   app.routes(),
+		TLSConfig: tlsConfig,
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)
