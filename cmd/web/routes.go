@@ -21,7 +21,7 @@ func (app *application) routes() http.Handler {
 		http.StripPrefix("/static", fileServer),
 	)
 
-	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
 	// TODO Improve these, httprouter won't allow confilicting routes /snippets/:id + /snippets/new etc
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))

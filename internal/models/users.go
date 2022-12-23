@@ -39,6 +39,8 @@ func (m *UserModel) Insert(name, email, password string) error {
 		string(hashedPassword),
 	)
 	if err != nil {
+		// We could also use the Exists method to check before calling DB.Exec and error if true
+		// That would introduce a race condition though (although very unlikely to occur)
 		var mySQLError *mysql.MySQLError
 		if errors.As(err, &mySQLError) {
 			if mySQLError.Number == 1062 && strings.Contains(mySQLError.Message, "users_uc_email") {
@@ -81,6 +83,11 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 	return id, nil
 }
 
-func (m *UserModel) Exists(id int) (bool, error) {
-	return false, nil
+func (m *UserModel) Exists(id int) (exists bool, err error) {
+	err = m.DB.QueryRow(
+		"SELECT EXISTS(SELECT true FROM users WHERE id = ?)",
+		id,
+	).Scan(&exists)
+
+	return
 }
