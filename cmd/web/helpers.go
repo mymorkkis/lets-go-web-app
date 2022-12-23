@@ -50,12 +50,13 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
-		CurrentYear: time.Now().Year(),
-		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		CurrentYear:     time.Now().Year(),
+		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 }
 
-// TODO Fix this any typing
+// TODO Fix this `any“ typing
 func (app *application) decodePostForm(r *http.Request, formStruct any) error {
 	err := r.ParseForm()
 	if err != nil {
@@ -74,4 +75,8 @@ func (app *application) decodePostForm(r *http.Request, formStruct any) error {
 	}
 
 	return nil
+}
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }

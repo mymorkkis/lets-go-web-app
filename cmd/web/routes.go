@@ -21,22 +21,23 @@ func (app *application) routes() http.Handler {
 		http.StripPrefix("/static", fileServer),
 	)
 
-	dynamicMiddleware := alice.New(app.sessionManager.LoadAndSave)
-	dynamicThen := dynamicMiddleware.ThenFunc
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
 	// TODO Improve these, httprouter won't allow confilicting routes /snippets/:id + /snippets/new etc
-	router.Handler(http.MethodGet, "/", dynamicThen(app.home))
-	router.Handler(http.MethodGet, "/snippet/view/:id", dynamicThen(app.snippetView))
-	router.Handler(http.MethodGet, "/snippet/create", dynamicThen(app.snippetCreateForm))
-	router.Handler(http.MethodPost, "/snippet/create", dynamicThen(app.snippetCreate))
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.snippetView))
+	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignupForm))
+	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.userSignup))
+	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLoginForm))
+	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLogin))
 
-	router.Handler(http.MethodGet, "/user/signup", dynamicThen(app.userSignupForm))
-	router.Handler(http.MethodPost, "/user/signup", dynamicThen(app.userSignup))
-	router.Handler(http.MethodGet, "/user/login", dynamicThen(app.userLoginForm))
-	router.Handler(http.MethodPost, "/user/login", dynamicThen(app.userLogin))
-	router.Handler(http.MethodPost, "/user/logout", dynamicThen(app.userLogout))
+	protected := dynamic.Append(app.requireAuthentication)
 
-	requestMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+	router.Handler(http.MethodGet, "/snippet/create", protected.ThenFunc(app.snippetCreateForm))
+	router.Handler(http.MethodPost, "/snippet/create", protected.ThenFunc(app.snippetCreate))
+	router.Handler(http.MethodPost, "/user/logout", protected.ThenFunc(app.userLogout))
 
-	return requestMiddleware.Then(router)
+	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	return standard.Then(router)
 }
