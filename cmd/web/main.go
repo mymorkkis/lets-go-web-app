@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/alexedwards/scs/mysqlstore"
@@ -27,7 +26,6 @@ type application struct {
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
 	sessionManager *scs.SessionManager
-	staticPath     string
 }
 
 func main() {
@@ -57,11 +55,6 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = true
 
-	wd, err := os.Getwd()
-	if err != nil {
-		errorLog.Fatal(err)
-	}
-
 	app := &application{
 		infoLog:        infoLog,
 		errorLog:       errorLog,
@@ -70,7 +63,6 @@ func main() {
 		templateCache:  templateCache,
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
-		staticPath:     filepath.Join(wd, "ui", "static"),
 	}
 
 	tlsConfig := &tls.Config{

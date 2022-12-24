@@ -2,11 +2,12 @@ package main
 
 import (
 	"html/template"
-	"os"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"github.com/mymorkkis/lets-go-web-app/internal/models"
+	"github.com/mymorkkis/lets-go-web-app/ui"
 )
 
 // Define a templateData type to act as the holding structure for
@@ -32,15 +33,9 @@ var functions = template.FuncMap{
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	htmlPath := filepath.Join(wd, "ui", "html")
-
-	pages, err := filepath.Glob(
-		filepath.Join(htmlPath, "pages", "*.html"),
+	pages, err := fs.Glob(
+		ui.Files,
+		filepath.Join("html", "pages", "*.html"),
 	)
 	if err != nil {
 		return nil, err
@@ -50,19 +45,13 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 		templateSet := template.New(name).Funcs(functions)
 
-		files := []string{
-			filepath.Join(htmlPath, "base.html"),
+		patterns := []string{
+			filepath.Join("html", "base.html"),
+			filepath.Join("html", "partials", "*.html"),
 			page,
 		}
 
-		templateSet, err := templateSet.ParseFiles(files...)
-		if err != nil {
-			return nil, err
-		}
-
-		templateSet, err = templateSet.ParseGlob(
-			filepath.Join(htmlPath, "partials", "*.html"),
-		)
+		templateSet, err = templateSet.ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
