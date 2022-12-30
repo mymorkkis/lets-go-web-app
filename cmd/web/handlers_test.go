@@ -23,6 +23,7 @@ func TestPing(t *testing.T) {
 
 	assert.Equal(t, rs.StatusCode, http.StatusOK)
 
+	// TODO Refactor this out
 	defer rs.Body.Close()
 	body, err := io.ReadAll(rs.Body)
 	if err != nil {
@@ -31,4 +32,16 @@ func TestPing(t *testing.T) {
 	// bytes.TrimSpace(body)
 
 	assert.Equal(t, string(body), "OK")
+}
+
+func TestPingEndToEnd(t *testing.T) {
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	code, _, body := ts.get(t, "/ping")
+
+	assert.Equal(t, code, http.StatusOK)
+	assert.Equal(t, body, "OK")
 }
